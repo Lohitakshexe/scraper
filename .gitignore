@@ -1,0 +1,7 @@
+node_modules/
+output/
+.DS_Store
+*.log
+video.webm
+*.png
+data.json
