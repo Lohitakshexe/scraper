@@ -64,13 +64,42 @@ async function extractPageData(page, url, outputDir, config) {
           x: rect.x, y: rect.y, width: rect.width, height: rect.height
         },
         styles: {
+          // Visual styles
           backgroundColor: styles.backgroundColor,
+          backgroundImage: styles.backgroundImage !== 'none' ? styles.backgroundImage : undefined,
           color: styles.color,
           fontFamily: styles.fontFamily,
           fontSize: styles.fontSize,
           fontWeight: styles.fontWeight,
           lineHeight: styles.lineHeight,
-          border: styles.border,
+          border: styles.border !== '0px none rgb(0, 0, 0)' ? styles.border : undefined,
+          
+          // Structural & Layout styles
+          display: styles.display,
+          position: styles.position !== 'static' ? styles.position : undefined,
+          margin: styles.margin !== '0px' ? styles.margin : undefined,
+          padding: styles.padding !== '0px' ? styles.padding : undefined,
+          width: styles.width !== 'auto' ? styles.width : undefined,
+          height: styles.height !== 'auto' ? styles.height : undefined,
+          
+          // Flexbox
+          ...(styles.display.includes('flex') && {
+            flexDirection: styles.flexDirection,
+            justifyContent: styles.justifyContent,
+            alignItems: styles.alignItems,
+            flexWrap: styles.flexWrap,
+            gap: styles.gap !== 'normal' ? styles.gap : undefined
+          }),
+          flex: styles.flex !== '0 1 auto' ? styles.flex : undefined,
+
+          // Grid
+          ...(styles.display.includes('grid') && {
+            gridTemplateColumns: styles.gridTemplateColumns,
+            gridTemplateRows: styles.gridTemplateRows,
+            gap: styles.gap !== 'normal' ? styles.gap : undefined
+          }),
+          gridColumn: styles.gridColumn !== 'auto' ? styles.gridColumn : undefined,
+          gridRow: styles.gridRow !== 'auto' ? styles.gridRow : undefined
         }
       };
 
@@ -89,10 +118,18 @@ async function extractPageData(page, url, outputDir, config) {
       // Skip hidden or invisible elements to reduce noise
       const style = window.getComputedStyle(node);
       if (style.display === 'none' || style.visibility === 'hidden') return null;
-      // Skip scripts, styles, etc.
-      if (['script', 'style', 'noscript', 'meta', 'link', 'svg'].includes(node.tagName.toLowerCase())) return null;
+      // Skip scripts, styles, etc. (No longer skipping SVG!)
+      if (['script', 'style', 'noscript', 'meta', 'link'].includes(node.tagName.toLowerCase())) return null;
 
       const data = extractElementData(node);
+      
+      // Specifically for SVGs, let's grab the raw outerHTML so the LLM has the exact shape data
+      if (node.tagName.toLowerCase() === 'svg') {
+        data.svgContent = node.outerHTML;
+        // We don't need to recursively walk inside the SVG if we have the outerHTML
+        return data;
+      }
+      
       const children = [];
       for (let child of node.childNodes) {
         const childData = walkDOM(child);
