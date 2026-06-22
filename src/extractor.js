@@ -138,6 +138,8 @@ async function extractPageData(page, url, outputDir, config) {
         data.svgContent = node.outerHTML;
         // We don't need to recursively walk inside the SVG if we have the outerHTML
         return data;
+      }
+      
       // Grab canvas snapshots for WebGL / particle systems
       if (node.tagName.toLowerCase() === 'canvas') {
         try {
