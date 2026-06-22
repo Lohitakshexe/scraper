@@ -54,7 +54,7 @@ ui-scraper <url> [options]
 **Crawling & Depth**
 *   `-d, --max-depth <number>`: Maximum crawling depth from the start URL. For example, `1` will crawl the home page and all pages directly linked from the home page. (Default: 0 - only scrapes the start URL).
 *   `-p, --max-pages <number>`: Maximum number of pages to scrape overall to prevent endless crawling. (Default: 1).
-*   `-o, --output <dir>`: Output directory for the scraped data. (Default: `./output`).
+*   `-o, --output <dir>`: Output directory for the scraped data. If the specified directory already exists, the scraper will automatically append a number to avoid overriding existing data (e.g., `./output(1)`). (Default: `./output`).
 
 **Motion & Animation Options (Choose one)**
 *   `--css-animations`: *(Default)* Extracts CSS `transition` and `animation` properties into the structured `data.json`.

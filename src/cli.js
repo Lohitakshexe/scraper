@@ -3,6 +3,7 @@
 const { program } = require('commander');
 const { crawl } = require('./crawler');
 const chalk = require('chalk');
+const fs = require('fs');
 
 program
   .name('ui-scraper')
@@ -40,11 +41,18 @@ program
       if (framesCount > 15) framesCount = 15; // Max limit
     }
 
+    let finalOutputDir = options.output;
+    let counter = 1;
+    while (fs.existsSync(finalOutputDir)) {
+      finalOutputDir = `${options.output}(${counter})`;
+      counter++;
+    }
+
     const config = {
       startUrl: url,
       maxDepth: parseInt(options.maxDepth, 10),
       maxPages: parseInt(options.maxPages, 10),
-      outputDir: options.output,
+      outputDir: finalOutputDir,
       motionType: motionType,
       framesCount: framesCount
     };
