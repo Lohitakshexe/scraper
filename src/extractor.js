@@ -37,15 +37,25 @@ async function extractPageData(page, url, outputDir, config) {
     });
   }
 
-  // 1. Take screenshots
+  // 1. Take screenshots & Scroll
   if (motionType === 'frames' && framesCount > 1) {
     const interval = animationDurationMs / framesCount;
+    // Calculate scroll step to trigger scroll-bound animations
+    const scrollHeight = await page.evaluate(() => Math.max(0, document.body.scrollHeight - window.innerHeight));
+    const scrollStep = scrollHeight > 0 ? scrollHeight / (framesCount - 1) : 0;
+
     for (let i = 0; i < framesCount; i++) {
       await page.screenshot({ path: path.join(outputDir, `frame_${i + 1}.png`), fullPage: true });
       if (i < framesCount - 1) {
+        if (scrollStep > 0) {
+          // Scroll down to trigger any IntersectionObservers or scroll libraries (like GSAP)
+          await page.evaluate((step) => window.scrollBy(0, step), scrollStep);
+        }
         await page.waitForTimeout(interval);
       }
     }
+    // Scroll back to top just in case
+    await page.evaluate(() => window.scrollTo(0, 0));
   } else {
     await page.screenshot({ path: path.join(outputDir, 'screenshot.png'), fullPage: true });
   }
@@ -128,6 +138,15 @@ async function extractPageData(page, url, outputDir, config) {
         data.svgContent = node.outerHTML;
         // We don't need to recursively walk inside the SVG if we have the outerHTML
         return data;
+      // Grab canvas snapshots for WebGL / particle systems
+      if (node.tagName.toLowerCase() === 'canvas') {
+        try {
+          // Attempt to get base64 image of the current canvas state
+          data.canvasSnapshot = node.toDataURL('image/png');
+        } catch (e) {
+          // Ignore tainted canvas errors
+          data.canvasSnapshot = "error_extracting_canvas_data";
+        }
       }
       
       const children = [];
@@ -147,9 +166,15 @@ async function extractPageData(page, url, outputDir, config) {
       return data;
     };
 
+    // Extract external scripts to identify animation libraries (GSAP, ThreeJS, etc.)
+    const scripts = Array.from(document.querySelectorAll('script[src]'))
+      .map(s => s.getAttribute('src'))
+      .filter(src => src);
+
     return {
       url: window.location.href,
       title: document.title,
+      detectedLibraries: scripts,
       layoutTree: walkDOM(document.body)
     };
   }, motionType);
