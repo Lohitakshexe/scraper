@@ -1,7 +1,7 @@
 # UI Scraper for LLMs
 
 A powerful command-line tool built with [Playwright](https://playwright.dev/) to scrape website user interfaces, visual elements, and animations. This tool generates structured data (`data.json`) and frame-by-frame screenshots optimized for feeding into vision-enabled Large Language Models (like Claude 3.5 Sonnet or Gemini 1.5 Pro) as reference material for rebuilding or modifying design systems.
-
+[edit]: check out v2 at the bottom👇
 ## 📦 Prerequisites & Dependencies
 
 Before you begin, ensure you have the following installed on your system:
