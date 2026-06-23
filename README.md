@@ -92,3 +92,34 @@ If you used the `--frames` option, each folder will look like this:
 3. Upload the generated `.png` frames and paste the contents of `data.json` into the chat.
 4. Prompt the LLM: 
 > *"Use the attached screenshots as a visual reference for how the UI looks and animates over time. Use the `data.json` to extract exact colors, typography, and structural hierarchies. Generate the HTML, CSS, and JS to recreate this design system."*
+
+---
+
+# 🚀 V2 Scraper (Puppeteer Version)
+
+We have built a brand-new V2 scraper script inside `src/scraper_v2.js`. This version addresses major issues with capturing complex motion and scroll animations by switching to a **Puppeteer-based time-lapse chunking** architecture. 
+
+It is provided as a standalone script so it **does not break or overwrite** the original Playwright version.
+
+## Key Improvements in V2:
+- **Full-Page Chunking:** Automatically stitches together massive vertically scrolling pages into easily readable chunks.
+- **Scroll Tracking:** Solves the problem of scroll-triggered animations by smoothly scrolling the page over a 10-second sequence.
+- **Lazy Load Trigger:** Forces invisible scrolling to trigger React/Vue lazy-loaded elements before taking snapshots.
+
+## Usage for V2:
+```bash
+node src/scraper_v2.js -u "https://yourwebsite.com" [options]
+```
+
+### V2 Options:
+- `--scrollsite`: Smoothly scrolls down the page over 10 seconds, capturing a frame every 2 seconds. Perfect for scroll-based animations!
+- `--max-pages <number>`: Crawl multiple pages (uses a Breadth-First Queue).
+- `--max-depth <number>`: Limits how deep the crawler follows links.
+- `--no-motion`: Freezes all CSS animations instantly and captures a single frame (super fast).
+- `-o, --output <dir>`: Sets output directory. Now strictly prevents overriding by using `output(1)`, `output(2)`, etc.
+
+### Example:
+```bash
+# Smooth scroll and capture animations, up to 3 pages
+node src/scraper_v2.js -u "https://example.com" --scrollsite --max-pages 3
+```
